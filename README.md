@@ -1,20 +1,56 @@
 # NETFLIX MOVIES AND SHOW  DATA ANALYSIS
 ![NETFLIX LOGO](https://github.com/Gautam1023/NETFLIX---SQL/blob/main/logo.png)
 
-Overview
-This project involves a comprehensive analysis of Netflix's movies and TV shows data using SQL. The goal is to extract valuable insights and answer various business questions based on the dataset. The following README provides a detailed account of the project's objectives, business problems, solutions, findings, and conclusions.
+# Netflix Data Analysis Using SQL
 
-Objectives
-Analyze the distribution of content types (movies vs TV shows).
-Identify the most common ratings for movies and TV shows.
-List and analyze content based on release years, countries, and durations.
-Explore and categorize content based on specific criteria and keywords.
-Dataset
-The data for this project is sourced from the Kaggle dataset:
+## Project Overview
 
-Dataset Link: Movies Dataset
-Schema
+This project focuses on analyzing Netflix's Movies and TV Shows dataset using SQL. The objective is to solve real-world business problems, uncover meaningful insights, and demonstrate advanced SQL techniques such as Common Table Expressions (CTEs), Window Functions, String Manipulation, Aggregations, and Data Filtering.
+
+The analysis helps understand content distribution, audience targeting, geographical trends, genre popularity, and content characteristics available on Netflix.
+
+---
+
+## Objectives
+
+* Analyze the distribution of Movies and TV Shows.
+* Identify the most common content ratings.
+* Explore content trends across countries and years.
+* Discover top-performing genres and actors.
+* Analyze content duration and release patterns.
+* Categorize content based on keywords in descriptions.
+* Practice advanced SQL querying and analytical problem-solving.
+
+---
+
+## Dataset
+
+**Source:** Netflix Movies and TV Shows Dataset (Kaggle)
+
+### Dataset Columns
+
+| Column       | Description                  |
+| ------------ | ---------------------------- |
+| show_id      | Unique content identifier    |
+| type         | Movie or TV Show             |
+| title        | Content title                |
+| director     | Director name                |
+| casts        | Cast members                 |
+| country      | Country of production        |
+| date_added   | Date added to Netflix        |
+| release_year | Release year                 |
+| rating       | Content rating               |
+| duration     | Movie duration or TV seasons |
+| listed_in    | Genre/category               |
+| description  | Content description          |
+
+---
+
+## Database Schema
+
+```sql
 DROP TABLE IF EXISTS netflix;
+
 CREATE TABLE netflix
 (
     show_id      VARCHAR(5),
@@ -30,166 +66,150 @@ CREATE TABLE netflix
     listed_in    VARCHAR(250),
     description  VARCHAR(550)
 );
-Business Problems and Solutions
-1. Count the Number of Movies vs TV Shows
-SELECT 
-    type,
-    COUNT(*)
-FROM netflix
-GROUP BY 1;
-Objective: Determine the distribution of content types on Netflix.
+```
 
-2. Find the Most Common Rating for Movies and TV Shows
-WITH RatingCounts AS (
-    SELECT 
-        type,
-        rating,
-        COUNT(*) AS rating_count
-    FROM netflix
-    GROUP BY type, rating
-),
-RankedRatings AS (
-    SELECT 
-        type,
-        rating,
-        rating_count,
-        RANK() OVER (PARTITION BY type ORDER BY rating_count DESC) AS rank
-    FROM RatingCounts
-)
-SELECT 
-    type,
-    rating AS most_frequent_rating
-FROM RankedRatings
-WHERE rank = 1;
-Objective: Identify the most frequently occurring rating for each type of content.
+---
 
-3. List All Movies Released in a Specific Year (e.g., 2020)
-SELECT * 
-FROM netflix
-WHERE release_year = 2020;
-Objective: Retrieve all movies released in a specific year.
+## Business Problems Solved
 
-4. Find the Top 5 Countries with the Most Content on Netflix
-SELECT * 
-FROM
-(
-    SELECT 
-        UNNEST(STRING_TO_ARRAY(country, ',')) AS country,
-        COUNT(*) AS total_content
-    FROM netflix
-    GROUP BY 1
-) AS t1
-WHERE country IS NOT NULL
-ORDER BY total_content DESC
-LIMIT 5;
-Objective: Identify the top 5 countries with the highest number of content items.
+### 1. Content Distribution Analysis
 
-5. Identify the Longest Movie
-SELECT 
-    *
-FROM netflix
-WHERE type = 'Movie'
-ORDER BY SPLIT_PART(duration, ' ', 1)::INT DESC;
-Objective: Find the movie with the longest duration.
+* Count total Movies vs TV Shows.
 
-6. Find Content Added in the Last 5 Years
-SELECT *
-FROM netflix
-WHERE TO_DATE(date_added, 'Month DD, YYYY') >= CURRENT_DATE - INTERVAL '5 years';
-Objective: Retrieve content added to Netflix in the last 5 years.
+### 2. Rating Analysis
 
-7. Find All Movies/TV Shows by Director 'Rajiv Chilaka'
-SELECT *
-FROM (
-    SELECT 
-        *,
-        UNNEST(STRING_TO_ARRAY(director, ',')) AS director_name
-    FROM netflix
-) AS t
-WHERE director_name = 'Rajiv Chilaka';
-Objective: List all content directed by 'Rajiv Chilaka'.
+* Identify the most common rating for each content type.
 
-8. List All TV Shows with More Than 5 Seasons
-SELECT *
-FROM netflix
-WHERE type = 'TV Show'
-  AND SPLIT_PART(duration, ' ', 1)::INT > 5;
-Objective: Identify TV shows with more than 5 seasons.
+### 3. Release Year Analysis
 
-9. Count the Number of Content Items in Each Genre
-SELECT 
-    UNNEST(STRING_TO_ARRAY(listed_in, ',')) AS genre,
-    COUNT(*) AS total_content
-FROM netflix
-GROUP BY 1;
-Objective: Count the number of content items in each genre.
+* Retrieve all movies released in a specific year.
 
-10.Find each year and the average numbers of content release in India on netflix.
-return top 5 year with highest avg content release!
+### 4. Country-Wise Content Analysis
 
-SELECT 
-    country,
-    release_year,
-    COUNT(show_id) AS total_release,
-    ROUND(
-        COUNT(show_id)::numeric /
-        (SELECT COUNT(show_id) FROM netflix WHERE country = 'India')::numeric * 100, 2
-    ) AS avg_release
-FROM netflix
-WHERE country = 'India'
-GROUP BY country, release_year
-ORDER BY avg_release DESC
-LIMIT 5;
-Objective: Calculate and rank years by the average number of content releases by India.
+* Find the Top 5 countries with the highest Netflix content production.
 
-11. List All Movies that are Documentaries
-SELECT * 
-FROM netflix
-WHERE listed_in LIKE '%Documentaries';
-Objective: Retrieve all movies classified as documentaries.
+### 5. Duration Analysis
 
-12. Find All Content Without a Director
-SELECT * 
-FROM netflix
-WHERE director IS NULL;
-Objective: List content that does not have a director.
+* Identify the longest movie available on Netflix.
 
-13. Find How Many Movies Actor 'Salman Khan' Appeared in the Last 10 Years
-SELECT * 
-FROM netflix
-WHERE casts LIKE '%Salman Khan%'
-  AND release_year > EXTRACT(YEAR FROM CURRENT_DATE) - 10;
-Objective: Count the number of movies featuring 'Salman Khan' in the last 10 years.
+### 6. Recent Content Analysis
 
-14. Find the Top 10 Actors Who Have Appeared in the Highest Number of Movies Produced in India
-SELECT 
-    UNNEST(STRING_TO_ARRAY(casts, ',')) AS actor,
-    COUNT(*)
-FROM netflix
-WHERE country = 'India'
-GROUP BY actor
-ORDER BY COUNT(*) DESC
-LIMIT 10;
-Objective: Identify the top 10 actors with the most appearances in Indian-produced movies.
+* Find content added during the last five years.
 
-15. Categorize Content Based on the Presence of 'Kill' and 'Violence' Keywords
-SELECT 
-    category,
-    COUNT(*) AS content_count
-FROM (
-    SELECT 
-        CASE 
-            WHEN description ILIKE '%kill%' OR description ILIKE '%violence%' THEN 'Bad'
-            ELSE 'Good'
-        END AS category
-    FROM netflix
-) AS categorized_content
-GROUP BY category;
-Objective: Categorize content as 'Bad' if it contains 'kill' or 'violence' and 'Good' otherwise. Count the number of items in each category.
+### 7. Director Analysis
 
-Findings and Conclusion
-Content Distribution: The dataset contains a diverse range of movies and TV shows with varying ratings and genres.
-Common Ratings: Insights into the most common ratings provide an understanding of the content's target audience.
-Geographical Insights: The top countries and the average content releases by India highlight regional content distribution.
-Content Categorization: Categorizing content based on specific keywords helps in understanding the nature of content available on Netflix.
-This analysis provides a comprehensive view of Netflix's content and can help inform content strategy and decision-making.
+* Retrieve all content directed by a specific director.
+
+### 8. TV Show Analysis
+
+* List TV Shows with more than five seasons.
+
+### 9. Genre Analysis
+
+* Count content items available in each genre.
+
+### 10. Indian Content Trends
+
+* Find the Top 5 years with the highest percentage of content releases from India.
+
+### 11. Documentary Analysis
+
+* Retrieve all documentary movies.
+
+### 12. Missing Data Analysis
+
+* Identify content without a listed director.
+
+### 13. Actor-Based Analysis
+
+* Find movies featuring Salman Khan released in the last decade.
+
+### 14. Top Actor Analysis
+
+* Identify the Top 10 actors appearing in Indian-produced content.
+
+### 15. Content Categorization
+
+* Categorize content as:
+
+  * Good
+  * Bad
+
+Based on the presence of keywords such as:
+
+* Kill
+* Violence
+
+---
+
+## SQL Concepts Used
+
+* SELECT Statements
+* WHERE Clauses
+* GROUP BY
+* ORDER BY
+* Aggregate Functions
+* Window Functions
+* Common Table Expressions (CTEs)
+* String Functions
+* CASE Statements
+* Date Functions
+* Array Functions
+* Subqueries
+
+---
+
+## Key Insights
+
+### Content Distribution
+
+Netflix offers a balanced mix of Movies and TV Shows, with Movies forming the majority of available content.
+
+### Audience Targeting
+
+Rating analysis helps identify the primary target audience for different content categories.
+
+### Geographic Trends
+
+Certain countries contribute significantly more content than others, highlighting regional production strengths.
+
+### Genre Popularity
+
+Documentaries, Dramas, and International content are among the major content categories.
+
+### Indian Content Growth
+
+India has shown strong growth in content production across multiple years.
+
+### Content Characteristics
+
+Keyword-based categorization provides insight into content themes and maturity levels.
+
+---
+
+## Technologies Used
+
+* PostgreSQL
+* SQL
+* Kaggle Dataset
+* Data Analysis
+* Business Intelligence
+
+---
+
+## Learning Outcomes
+
+Through this project, I gained hands-on experience with:
+
+* Advanced SQL Query Writing
+* Data Cleaning and Exploration
+* Analytical Problem Solving
+* Business-Oriented Data Analysis
+* Query Optimization Techniques
+* Real-World Dataset Analysis
+
+---
+
+## Conclusion
+
+This project demonstrates how SQL can be used to extract actionable insights from large-scale entertainment datasets. By solving multiple business-oriented questions, the analysis provides valuable understanding of Netflix's content ecosystem, audience segmentation, geographical distribution, and content trends.
